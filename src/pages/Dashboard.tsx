@@ -235,7 +235,12 @@ export default function Dashboard({ products, sales, onNavigate }: DashboardProp
               </p>
             </div>
           </div>
-          <div className="h-64 w-full" dir="ltr">
+          <div className="h-64 w-full relative" dir="ltr">
+            {totalWeekCount === 0 && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center text-sm pointer-events-none" style={tm}>
+                هنوز فروشی در هفته اخیر ثبت نشده است
+              </div>
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weekChartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
