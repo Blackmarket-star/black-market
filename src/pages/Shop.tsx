@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Minus, PackageOpen, Plus, RotateCcw, ShoppingBag } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Loader2, Minus, PackageOpen, Plus, RotateCcw, ShoppingBag } from "lucide-react";
 import type { Product } from "@/types";
 import { fetchProducts } from "@/lib/storage";
 import { placeOrder } from "@/lib/orders";
@@ -98,18 +98,27 @@ export default function Shop() {
               <p className="text-xs text-slate-500">ثبت سفارش سریع و آسان</p>
             </div>
           </div>
-          <a
-            href="#checkout"
-            className="flex items-center gap-2 rounded-xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-800 transition shrink-0"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>سبد خرید</span>
-            {itemCount > 0 && (
-              <span className="min-w-[1.5rem] h-6 px-1.5 rounded-full bg-emerald-400 text-slate-900 text-xs font-bold flex items-center justify-center">
-                {numberFormat.format(itemCount)}
-              </span>
-            )}
-          </a>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href="/"
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white text-slate-700 px-4 py-2.5 text-sm font-medium hover:bg-slate-100 hover:text-slate-900 transition"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span>بازگشت</span>
+            </a>
+            <a
+              href="#checkout"
+              className="flex items-center gap-2 rounded-xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-800 transition"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>سبد خرید</span>
+              {itemCount > 0 && (
+                <span className="min-w-[1.5rem] h-6 px-1.5 rounded-full bg-emerald-400 text-slate-900 text-xs font-bold flex items-center justify-center">
+                  {numberFormat.format(itemCount)}
+                </span>
+              )}
+            </a>
+          </div>
         </div>
       </header>
 
