@@ -8,6 +8,7 @@ import SelectionScreen from "@/components/SelectionScreen";
 import Dashboard from "@/pages/Dashboard";
 import Products from "@/pages/Products";
 import Sales from "@/pages/Sales";
+import Orders from "@/pages/Orders";
 import Inventory from "@/pages/Inventory";
 import Settings from "@/pages/Settings";
 import StaffDashboard from "@/pages/StaffDashboard";
@@ -192,6 +193,7 @@ function App() {
     dashboard: "داشبورد",
     products: "مدیریت کالاها",
     sales: "ثبت فروش",
+    orders: "سفارش‌های آنلاین",
     inventory: "انبار",
     settings: "تنظیمات",
   };
@@ -205,7 +207,12 @@ function App() {
   }
 
   if (route === "select") {
-    return <SelectionScreen storeName={storeName} onSelect={(mode) => setRoute(mode)} />;
+    return (
+      <SelectionScreen
+        storeName={storeName}
+        onSelect={(mode) => (mode === "shop" ? window.location.assign("/shop") : setRoute(mode))}
+      />
+    );
   }
 
   if (route === "staff") {
@@ -410,6 +417,7 @@ function App() {
               stockMovements={stockMovements}
             />
           )}
+          {page === "orders" && <Orders />}
           {page === "inventory" && (
             <Inventory
               products={products}

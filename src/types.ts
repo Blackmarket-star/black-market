@@ -34,6 +34,26 @@ export type StockMovement = {
   note?: string;
 };
 
+export type OrderStatus = "pending" | "completed" | "canceled";
+
+export type OrderItem = {
+  productId: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+};
+
+export type Order = {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  items: OrderItem[];
+  totalPrice: number;
+  status: OrderStatus;
+  createdAt: number;
+};
+
 export type StaffSalary = {
   id: string;
   employeeName: string;
