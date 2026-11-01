@@ -1,6 +1,6 @@
-import { LayoutDashboard, Package, ShoppingCart, Warehouse, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, ClipboardList, Warehouse, Settings } from "lucide-react";
 
-export type PageKey = "dashboard" | "products" | "sales" | "inventory" | "settings";
+export type PageKey = "dashboard" | "products" | "sales" | "orders" | "inventory" | "settings";
 
 export const NAV_ITEMS: {
   key: PageKey;
@@ -10,6 +10,7 @@ export const NAV_ITEMS: {
   { key: "dashboard", label: "داشبورد", icon: LayoutDashboard },
   { key: "products", label: "مدیریت کالاها", icon: Package },
   { key: "sales", label: "ثبت فروش", icon: ShoppingCart },
+  { key: "orders", label: "سفارش‌های آنلاین", icon: ClipboardList },
   { key: "inventory", label: "انبار", icon: Warehouse },
 ];
 

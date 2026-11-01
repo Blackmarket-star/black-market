@@ -1,7 +1,7 @@
-import { Store, Users, ArrowLeft, Sparkles } from "lucide-react";
+import { Store, Users, ShoppingBag, ArrowLeft, Sparkles } from "lucide-react";
 
 type SelectionScreenProps = {
-  onSelect: (mode: "store" | "staff") => void;
+  onSelect: (mode: "store" | "staff" | "shop") => void;
   storeName: string;
 };
 
@@ -14,13 +14,18 @@ export default function SelectionScreen({ onSelect, storeName }: SelectionScreen
       <div className="absolute -bottom-20 -left-20 w-[28rem] h-[28rem] rounded-full bg-emerald-500/12 blur-3xl" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-indigo-500/10 blur-3xl" />
 
-      <div className="relative w-full max-w-3xl page-enter py-8">
+      <div className="relative w-full max-w-4xl page-enter py-8">
         {/* Welcome message */}
         <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="flex items-center justify-center gap-2 mb-5">
             <Sparkles className="w-5 h-5 text-emerald-400" />
             <p className="text-emerald-400 text-sm font-medium">خوش آمدید</p>
           </div>
+          <img
+            src="/logo.png"
+            alt="Black-Market"
+            className="w-24 h-24 sm:w-28 sm:h-28 mx-auto rounded-3xl object-cover shadow-2xl shadow-black/50 mb-5"
+          />
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
             {storeName ? storeName : "سامانه مدیریت فروشگاه"}
           </h1>
@@ -28,7 +33,7 @@ export default function SelectionScreen({ onSelect, storeName }: SelectionScreen
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Store Management */}
           <button
             onClick={() => onSelect("store")}
@@ -80,6 +85,34 @@ export default function SelectionScreen({ onSelect, storeName }: SelectionScreen
               </p>
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 group-hover:gap-2.5 transition-all">
                 ورود به کارکنان
+                <ArrowLeft className="w-4 h-4" />
+              </span>
+            </div>
+          </button>
+
+          {/* Online Shop */}
+          <button
+            onClick={() => onSelect("shop")}
+            className="group relative overflow-hidden rounded-[2rem] p-8 sm:p-10 text-right transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl"
+            style={{
+              background: "rgba(15,23,42,0.6)",
+              backdropFilter: "blur(30px) saturate(1.5)",
+              WebkitBackdropFilter: "blur(30px) saturate(1.5)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 15px 50px rgba(245,158,11,0.12), inset 0 1px 0 rgba(255,255,255,0.08)",
+            }}
+          >
+            <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-amber-500/15 blur-3xl group-hover:bg-amber-500/25 transition-all duration-500" />
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-xl shadow-amber-500/30 mb-6 group-hover:scale-110 transition-transform duration-300">
+                <ShoppingBag className="w-8 h-8 text-white" strokeWidth={2.2} />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">سفارش آنلاین (فروشگاه)</h2>
+              <p className="text-sm text-slate-400 leading-relaxed mb-6">
+                مشاهده کالاها و ثبت سفارش آنلاین توسط مشتریان
+              </p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-400 group-hover:gap-2.5 transition-all">
+                ورود به فروشگاه آنلاین
                 <ArrowLeft className="w-4 h-4" />
               </span>
             </div>

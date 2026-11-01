@@ -50,29 +50,11 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
       >
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl mb-4"
-            style={{
-              background: "linear-gradient(145deg, #0a0a0a, #1c1c1c)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "'Inter', system-ui, sans-serif",
-                fontWeight: 800,
-                fontSize: "2rem",
-                lineHeight: 1,
-                letterSpacing: "-0.05em",
-                background: "linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              B
-            </span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Black-Market"
+            className="w-20 h-20 rounded-2xl object-cover shadow-2xl mb-4"
+          />
           <h1 className="text-xl font-bold text-white">ورود به سامانه</h1>
           <p className="text-sm text-slate-400 mt-1.5">رمز عبور را وارد کنید</p>
         </div>
