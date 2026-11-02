@@ -22,7 +22,6 @@ import {
   deleteProduct,
   insertSale,
   insertStockMovement,
-  seedSampleData,
   resetAllData,
   getStoreName,
   saveStoreName,
@@ -77,17 +76,9 @@ function App() {
         fetchStockMovements(),
       ]);
 
-      // If no products exist yet, seed sample data
-      if (p.length === 0) {
-        const seeded = await seedSampleData();
-        setProducts(seeded.products);
-        setSales(seeded.sales);
-        setStockMovements(seeded.stockMovements);
-      } else {
-        setProducts(p);
-        setSales(s);
-        setStockMovements(sm);
-      }
+      setProducts(p);
+      setSales(s);
+      setStockMovements(sm);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "خطا در بارگذاری داده‌ها");
     } finally {
@@ -167,10 +158,9 @@ function App() {
   async function handleReset() {
     try {
       await resetAllData();
-      const seeded = await seedSampleData();
-      setProducts(seeded.products);
-      setSales(seeded.sales);
-      setStockMovements(seeded.stockMovements);
+      setProducts([]);
+      setSales([]);
+      setStockMovements([]);
       setPage("dashboard");
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "خطا در بازنشانی داده‌ها");

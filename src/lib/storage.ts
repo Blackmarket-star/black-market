@@ -187,109 +187,13 @@ export async function saveStockMovements(movements: StockMovement[]): Promise<vo
   }
 }
 
-/* ---------- Reset + seed ---------- */
+/* ---------- Reset ---------- */
 
 export async function resetAllData(): Promise<void> {
   await supabase.from("stock_movements").delete().neq("id", "__none__");
   await supabase.from("sale_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("sales").delete().neq("id", "__none__");
   await supabase.from("products").delete().neq("id", "__none__");
-}
-
-export async function seedSampleData(): Promise<{
-  products: Product[];
-  sales: Sale[];
-  stockMovements: StockMovement[];
-}> {
-  const now = Date.now();
-  const day = 86400000;
-
-  const products: Product[] = [
-    { id: "p1", name: "برنج طارم", barcode: "6220101", purchasePrice: 450000, salePrice: 520000, stock: 35, unit: "کیلوگرم", createdAt: now - day * 30 },
-    { id: "p2", name: "روغن مایع آفتاب", barcode: "6220102", purchasePrice: 78000, salePrice: 95000, stock: 8, unit: "عدد", createdAt: now - day * 28 },
-    { id: "p3", name: "ماکارونی پاک", barcode: "6220103", purchasePrice: 12000, salePrice: 16000, stock: 60, unit: "بسته", createdAt: now - day * 25 },
-    { id: "p4", name: "رب گوجه فراوری", barcode: "6220104", purchasePrice: 65000, salePrice: 85000, stock: 4, unit: "عدد", createdAt: now - day * 22 },
-    { id: "p5", name: "چای گلستان ۵۰۰گ", barcode: "6220105", purchasePrice: 180000, salePrice: 230000, stock: 22, unit: "عدد", createdAt: now - day * 20 },
-    { id: "p6", name: "شکر سفید", barcode: "6220106", purchasePrice: 28000, salePrice: 36000, stock: 50, unit: "کیلوگرم", createdAt: now - day * 18 },
-    { id: "p7", name: "شیر پاستوریزه", barcode: "6220107", purchasePrice: 16000, salePrice: 22000, stock: 6, unit: "عدد", createdAt: now - day * 15 },
-    { id: "p8", name: "تخم مرغ بسته ۳۰تایی", barcode: "6220108", purchasePrice: 130000, salePrice: 165000, stock: 14, unit: "بسته", createdAt: now - day * 12 },
-    { id: "p9", name: "ماست کاله ۹۰۰گ", barcode: "6220109", purchasePrice: 26000, salePrice: 34000, stock: 0, unit: "عدد", createdAt: now - day * 10 },
-    { id: "p10", name: "پنیر لیقوان ۴۰۰گ", barcode: "6220110", purchasePrice: 95000, salePrice: 125000, stock: 18, unit: "عدد", createdAt: now - day * 8 },
-  ];
-
-  await saveProducts(products);
-
-  const sales: Sale[] = [];
-  const stockMovements: StockMovement[] = [];
-
-  const saleScenarios: { daysAgo: number; items: { pid: string; qty: number }[] }[] = [
-    { daysAgo: 6, items: [{ pid: "p1", qty: 2 }, { pid: "p2", qty: 3 }] },
-    { daysAgo: 6, items: [{ pid: "p3", qty: 5 }, { pid: "p6", qty: 1 }] },
-    { daysAgo: 5, items: [{ pid: "p5", qty: 1 }, { pid: "p8", qty: 1 }] },
-    { daysAgo: 5, items: [{ pid: "p2", qty: 2 }] },
-    { daysAgo: 4, items: [{ pid: "p4", qty: 2 }, { pid: "p3", qty: 3 }] },
-    { daysAgo: 4, items: [{ pid: "p1", qty: 5 }, { pid: "p6", qty: 3 }, { pid: "p10", qty: 1 }] },
-    { daysAgo: 3, items: [{ pid: "p7", qty: 4 }, { pid: "p9", qty: 2 }] },
-    { daysAgo: 3, items: [{ pid: "p2", qty: 1 }, { pid: "p5", qty: 2 }] },
-    { daysAgo: 2, items: [{ pid: "p3", qty: 10 }, { pid: "p8", qty: 2 }] },
-    { daysAgo: 2, items: [{ pid: "p1", qty: 3 }, { pid: "p4", qty: 1 }, { pid: "p6", qty: 2 }] },
-    { daysAgo: 1, items: [{ pid: "p5", qty: 1 }, { pid: "p7", qty: 3 }, { pid: "p10", qty: 2 }] },
-    { daysAgo: 1, items: [{ pid: "p2", qty: 2 }, { pid: "p3", qty: 4 }] },
-    { daysAgo: 0, items: [{ pid: "p1", qty: 2 }, { pid: "p8", qty: 1 }] },
-    { daysAgo: 0, items: [{ pid: "p6", qty: 3 }, { pid: "p4", qty: 1 }, { pid: "p10", qty: 1 }] },
-  ];
-
-  for (const scenario of saleScenarios) {
-    const items = scenario.items.map((it) => {
-      const product = products.find((p) => p.id === it.pid)!;
-      return {
-        productId: it.pid,
-        name: product.name,
-        quantity: it.qty,
-        salePrice: product.salePrice,
-        total: product.salePrice * it.qty,
-      };
-    });
-    const total = items.reduce((sum, i) => sum + i.total, 0);
-    const date = now - scenario.daysAgo * day + Math.floor(Math.random() * 36000000);
-
-    const sale: Sale = { id: uid(), items, total, date };
-    sales.push(sale);
-    await insertSale(sale);
-
-    for (const it of scenario.items) {
-      const p = products.find((p) => p.id === it.pid)!;
-      p.stock = Math.max(0, p.stock - it.qty);
-    }
-  }
-
-  // Update product stock after sales
-  await saveProducts(products);
-
-  // Stock-in movements
-  const sm1: StockMovement = {
-    id: uid(),
-    productId: "p1",
-    productName: "برنج طارم",
-    type: "in",
-    quantity: 20,
-    date: now - day * 5,
-    note: "خرید از عمده‌فروشی",
-  };
-  const sm2: StockMovement = {
-    id: uid(),
-    productId: "p3",
-    productName: "ماکارونی پاک",
-    type: "in",
-    quantity: 30,
-    date: now - day * 3,
-    note: "خرید از تامین‌کننده",
-  };
-  stockMovements.push(sm1, sm2);
-  await insertStockMovement(sm1);
-  await insertStockMovement(sm2);
-
-  return { products, sales, stockMovements };
 }
 
 /* ---------- Staff Salaries (Supabase) ---------- */
