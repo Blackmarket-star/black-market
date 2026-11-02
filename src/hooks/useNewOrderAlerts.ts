@@ -9,7 +9,7 @@ export function useNewOrderAlerts() {
 
   useEffect(() => {
     const channel = supabase
-      .channel("admin-new-orders")
+      .channel(`admin-new-orders-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "orders" },
@@ -20,7 +20,11 @@ export function useNewOrderAlerts() {
           setAlerts((prev) => [order, ...prev]);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("new order alerts subscription failed:", status);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
