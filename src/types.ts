@@ -44,14 +44,34 @@ export type OrderItem = {
   total: number;
 };
 
+export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed";
+
 export type Order = {
   id: string;
+  orderNumber: number;
   customerName: string;
   customerPhone: string;
   items: OrderItem[];
   totalPrice: number;
   status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  province: string;
+  city: string;
+  address: string;
+  buildingUnit: string | null;
+  postalCode: string | null;
+  deliveryNotes: string | null;
+  latitude: number | null;
+  longitude: number | null;
   createdAt: number;
+};
+
+export type StoreSettings = {
+  province: string;
+  city: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type StaffSalary = {

@@ -1,0 +1,13 @@
+{
+  "projectId": "72513076",
+  "functions": {
+    "zarinpal-callback": {
+      "hasChanged": false,
+      "hash": "d7412dd8f16a6303ac96c83886fcc32e82a544d3c41e1d8f4be6f14be1953275"
+    },
+    "zarinpal-request": {
+      "hasChanged": false,
+      "hash": "0270f89b369159ff534408621ed601cf213709a207019ba842ecac9039783c3b"
+    }
+  }
+}

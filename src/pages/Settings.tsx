@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Settings as SettingsIcon, Trash2, Database, Info, CheckCircle, Store, Edit3 } from "lucide-react";
+import StoreAddressCard from "@/components/StoreAddressCard";
 
 type SettingsProps = {
   onReset: () => void;
@@ -45,7 +46,7 @@ export default function Settings({ onReset, storeName, onStoreNameChange }: Sett
         <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3 page-enter">
           <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-            داده‌ها با موفقیت پاک شد و داده‌های نمونه مجدداً بارگذاری شد.
+            داده‌ها با موفقیت پاک شد.
           </p>
         </div>
       )}
@@ -116,6 +117,9 @@ export default function Settings({ onReset, storeName, onStoreNameChange }: Sett
         )}
       </div>
 
+      {/* Store address card */}
+      <StoreAddressCard />
+
       {/* Info card */}
       <div className="glass rounded-3xl p-6">
         <div className="flex items-start gap-4">
@@ -140,7 +144,7 @@ export default function Settings({ onReset, storeName, onStoreNameChange }: Sett
           <div>
             <h3 className="text-base font-semibold mb-1" style={tp}>مدیریت داده‌ها</h3>
             <p className="text-sm" style={ts}>
-              با پاک کردن داده‌ها، تمام کالاها، فروش‌ها و حرکت‌های انبار حذف شده و داده‌های نمونه از نو ساخته می‌شود.
+              با پاک کردن داده‌ها، تمام کالاها، فروش‌ها و حرکت‌های انبار حذف می‌شود و هیچ داده نمونه‌ای جایگزین آن نمی‌شود.
             </p>
           </div>
         </div>

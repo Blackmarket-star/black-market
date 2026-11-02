@@ -12,6 +12,7 @@ import Orders from "@/pages/Orders";
 import Inventory from "@/pages/Inventory";
 import Settings from "@/pages/Settings";
 import StaffDashboard from "@/pages/StaffDashboard";
+import OrderAlertStack from "@/components/OrderAlertStack";
 import type { PageKey } from "@/lib/nav";
 import type { Product, Sale, StockMovement } from "@/types";
 import {
@@ -32,6 +33,7 @@ import { Menu, Loader2, Home } from "lucide-react";
 
 function App() {
   const [page, setPage] = useState<PageKey>("dashboard");
+  const [focusOrderId, setFocusOrderId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -110,6 +112,12 @@ function App() {
 
   function handleNavigate(key: PageKey) {
     setPage(key);
+    setSidebarOpen(false);
+  }
+
+  function handleViewOrder(orderId: string) {
+    setFocusOrderId(orderId);
+    setPage("orders");
     setSidebarOpen(false);
   }
 
@@ -240,6 +248,7 @@ function App() {
       style={{ color: "var(--text-primary)" }}
     >
       <WelcomeModal open={showWelcome} onSave={handleWelcomeSave} />
+      <OrderAlertStack onView={handleViewOrder} />
 
       <Sidebar
         current={page}
@@ -407,7 +416,7 @@ function App() {
               stockMovements={stockMovements}
             />
           )}
-          {page === "orders" && <Orders />}
+          {page === "orders" && <Orders focusOrderId={focusOrderId} />}
           {page === "inventory" && (
             <Inventory
               products={products}

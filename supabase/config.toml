@@ -1,0 +1,5 @@
+[functions.zarinpal-request]
+verify_jwt = false
+
+[functions.zarinpal-callback]
+verify_jwt = false

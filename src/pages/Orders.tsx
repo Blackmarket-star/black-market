@@ -22,7 +22,11 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
 
 const STATUSES: OrderStatus[] = ["pending", "completed", "canceled"];
 
-export default function Orders() {
+type OrdersProps = {
+  focusOrderId: string | null;
+};
+
+export default function Orders({ focusOrderId }: OrdersProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -32,6 +36,11 @@ export default function Orders() {
   useEffect(() => {
     loadOrders();
   }, []);
+
+  useEffect(() => {
+    if (!focusOrderId || loading) return;
+    document.getElementById(`order-${focusOrderId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusOrderId, loading]);
 
   async function loadOrders() {
     setLoading(true);
@@ -122,10 +131,18 @@ export default function Orders() {
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.id} className="border-b last:border-0 align-top" style={{ borderColor: "var(--border)" }}>
+                  <tr
+                    key={order.id}
+                    id={`order-${order.id}`}
+                    className={`border-b last:border-0 align-top transition-colors ${order.id === focusOrderId ? "bg-violet-500/10" : ""}`}
+                    style={{ borderColor: "var(--border)" }}
+                  >
                     <td className="py-4 pl-4">
-                      <p className="font-medium" style={tp}>{order.customerName}</p>
+                      <p className="text-xs font-semibold text-violet-500">سفارش {order.orderNumber.toLocaleString("fa-IR")}</p>
+                      <p className="font-medium mt-1" style={tp}>{order.customerName}</p>
                       <p className="text-xs mt-1" style={tm}>{formatDate(order.createdAt)}</p>
+                      <p className="text-xs mt-1" style={ts}>{order.city}، {order.address}{order.buildingUnit ? `، ${order.buildingUnit}` : ""}</p>
+                      {order.deliveryNotes && <p className="text-xs mt-1" style={tm}>یادداشت: {order.deliveryNotes}</p>}
                     </td>
                     <td className="py-4 pl-4 text-xs" style={ts} dir="ltr">{order.customerPhone}</td>
                     <td className="py-4 pl-4 text-xs space-y-1 min-w-[12rem]" style={ts}>
