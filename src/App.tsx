@@ -152,7 +152,8 @@ function App() {
           old.barcode !== p.barcode ||
           old.purchasePrice !== p.purchasePrice ||
           old.salePrice !== p.salePrice ||
-          old.unit !== p.unit
+          old.unit !== p.unit ||
+          old.category !== p.category
         ) {
           await updateProductDetails(p);
         }
@@ -426,7 +427,7 @@ function App() {
             <Dashboard products={products} sales={sales} onNavigate={handleNavigate} />
           )}
           {page === "products" && (
-            <Products products={products} onChange={updateProducts} />
+            <Products products={products} onChange={updateProducts} onReload={refreshStockData} />
           )}
           {page === "sales" && (
             <Sales

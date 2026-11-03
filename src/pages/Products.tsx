@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import type { Product } from "@/types";
 import { formatPrice } from "@/lib/format";
-import { uid } from "@/lib/storage";
+import { uid, removeStoredProductImage } from "@/lib/storage";
+import { PRODUCT_CATEGORIES, categoryLabel } from "@/lib/productCategories";
+import ProductImageField from "@/components/ProductImageField";
 import {
   Plus,
   Pencil,
@@ -16,15 +18,19 @@ import {
 type ProductsProps = {
   products: Product[];
   onChange: (products: Product[]) => void;
+  onReload: () => Promise<void>;
 };
 
-const emptyForm: Omit<Product, "id" | "createdAt"> = {
+type ProductForm = Omit<Product, "id" | "createdAt" | "imageUrl">;
+
+const emptyForm: ProductForm = {
   name: "",
   barcode: "",
   purchasePrice: 0,
   salePrice: 0,
   stock: 0,
   unit: "عدد",
+  category: null,
 };
 
 const UNITS = ["عدد", "کیلوگرم", "لیتر", "بسته", "جعبه", "گوشی"];
@@ -33,10 +39,10 @@ const tp = { color: "var(--text-primary)" };
 const ts = { color: "var(--text-secondary)" };
 const tm = { color: "var(--text-muted)" };
 
-export default function Products({ products, onChange }: ProductsProps) {
+export default function Products({ products, onChange, onReload }: ProductsProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<Omit<Product, "id" | "createdAt">>(emptyForm);
+  const [form, setForm] = useState<ProductForm>(emptyForm);
   const [search, setSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
@@ -70,6 +76,7 @@ export default function Products({ products, onChange }: ProductsProps) {
       salePrice: p.salePrice,
       stock: p.stock,
       unit: p.unit,
+      category: p.category,
     });
     setEditingId(p.id);
     setModalOpen(true);
@@ -91,6 +98,7 @@ export default function Products({ products, onChange }: ProductsProps) {
         name: form.name.trim(),
         id: uid(),
         createdAt: Date.now(),
+        imageUrl: null,
       };
       onChange([newProduct, ...products]);
     }
@@ -98,6 +106,8 @@ export default function Products({ products, onChange }: ProductsProps) {
   }
 
   function handleDelete(id: string) {
+    const target = products.find((p) => p.id === id);
+    if (target?.imageUrl) void removeStoredProductImage(target.imageUrl).catch(() => undefined);
     onChange(products.filter((p) => p.id !== id));
     setConfirmDelete(null);
   }
@@ -175,6 +185,7 @@ export default function Products({ products, onChange }: ProductsProps) {
                         {low && <AlertTriangle className="w-4 h-4 text-red-500 dark:text-red-400 shrink-0" />}
                         {p.name}
                       </div>
+                      <p className="text-xs font-normal mt-0.5" style={tm}>{categoryLabel(p.category)}</p>
                     </td>
                     <td className="py-3 px-4 font-mono text-xs" style={tm}>
                       {p.barcode || "—"}
@@ -235,6 +246,7 @@ export default function Products({ products, onChange }: ProductsProps) {
                       {low && <AlertTriangle className="w-4 h-4 text-red-500 dark:text-red-400 shrink-0" />}
                       {p.name}
                     </p>
+                    <p className="text-xs mt-0.5" style={tm}>{categoryLabel(p.category)}</p>
                     <p className="text-xs font-mono mt-1" style={tm}>
                       {p.barcode || "بدون بارکد"}
                     </p>
@@ -289,6 +301,21 @@ export default function Products({ products, onChange }: ProductsProps) {
                 <Field label="نام کالا" className="col-span-2">
                   <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="مثلاً شیر پاستوریزه" className="form-input" required autoFocus />
                 </Field>
+                <Field label="دسته‌بندی فروشگاه" className="col-span-2">
+                  <select value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value || null })} className="form-input">
+                    <option value="">بدون دسته</option>
+                    {PRODUCT_CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                  </select>
+                </Field>
+                {editingId && (
+                  <div className="col-span-2">
+                    <ProductImageField
+                      productId={editingId}
+                      imageUrl={products.find((p) => p.id === editingId)?.imageUrl ?? null}
+                      onReload={onReload}
+                    />
+                  </div>
+                )}
                 <Field label="بارکد">
                   <input type="text" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} placeholder="اختیاری" className="form-input" />
                 </Field>

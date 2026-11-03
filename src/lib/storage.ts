@@ -56,6 +56,8 @@ export async function fetchProducts(): Promise<Product[]> {
     salePrice: Number(r.sale_price),
     stock: r.stock,
     unit: r.unit,
+    category: r.category ?? null,
+    imageUrl: r.image_url ?? null,
     createdAt: r.created_at,
   }));
 }
@@ -69,6 +71,7 @@ export async function insertProduct(product: Product): Promise<void> {
     sale_price: product.salePrice,
     stock: product.stock,
     unit: product.unit,
+    category: product.category,
     created_at: product.createdAt,
   });
   if (error) throw error;
@@ -84,9 +87,61 @@ export async function updateProductDetails(product: Product): Promise<void> {
       purchase_price: product.purchasePrice,
       sale_price: product.salePrice,
       unit: product.unit,
+      category: product.category,
     })
     .eq("id", product.id);
   if (error) throw error;
+}
+
+const PRODUCT_IMAGE_BUCKET = "product-images";
+
+function productImagePath(imageUrl: string): string | null {
+  const marker = `/object/public/${PRODUCT_IMAGE_BUCKET}/`;
+  const index = imageUrl.indexOf(marker);
+  return index === -1 ? null : decodeURIComponent(imageUrl.slice(index + marker.length));
+}
+
+export async function removeStoredProductImage(imageUrl: string | null): Promise<void> {
+  if (!imageUrl) return;
+  const path = productImagePath(imageUrl);
+  if (!path) return;
+  await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([path]);
+}
+
+export async function replaceProductImage(
+  productId: string,
+  previousUrl: string | null,
+  file: File
+): Promise<string> {
+  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const path = `${productId}/${Date.now()}.${ext}`;
+  const { error: uploadErr } = await supabase.storage
+    .from(PRODUCT_IMAGE_BUCKET)
+    .upload(path, file, { contentType: file.type, cacheControl: "3600" });
+  if (uploadErr) throw uploadErr;
+
+  const { data } = supabase.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(path);
+  const { error: updateErr } = await supabase
+    .from("products")
+    .update({ image_url: data.publicUrl })
+    .eq("id", productId);
+  if (updateErr) {
+    await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([path]);
+    throw updateErr;
+  }
+
+  await removeStoredProductImage(previousUrl);
+  return data.publicUrl;
+}
+
+export async function removeProductImage(productId: string, previousUrl: string | null): Promise<void> {
+  const { error } = await supabase
+    .from("products")
+    .update({ image_url: null })
+    .eq("id", productId);
+  if (error) throw error;
+
+  await removeStoredProductImage(previousUrl);
 }
 
 export async function deleteProduct(id: string): Promise<void> {

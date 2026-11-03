@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowRight, CheckCircle2, Loader2, MapPin, PackageOpen, RotateCcw, ShoppingBag, XCircle } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Loader2, MapPin, PackageOpen, RotateCcw, Search, ShoppingBag, XCircle } from "lucide-react";
 import type { Product, StoreSettings } from "@/types";
 import { fetchProducts } from "@/lib/storage";
 import { fetchOrderNumber, placeOrder, requestOnlinePayment } from "@/lib/orders";
@@ -7,8 +7,13 @@ import { fetchStoreSettings, EMPTY_STORE_SETTINGS } from "@/lib/storeSettings";
 import { formatPrice } from "@/lib/format";
 import CheckoutPanel, { type CartLine, type CheckoutFormValues } from "@/components/shop/CheckoutPanel";
 import ProductCard from "@/components/shop/ProductCard";
+import CategoryTabs, { ALL_CATEGORY } from "@/components/shop/CategoryTabs";
 
 const numberFormat = new Intl.NumberFormat("fa-IR");
+
+function normalizeSearch(value: string): string {
+  return value.toLowerCase().replace(/ي/g, "ی").replace(/ك/g, "ک").trim();
+}
 
 type PaymentReturn = { status: "paid" | "failed"; orderNumber: string | null };
 
@@ -30,6 +35,8 @@ export default function Shop() {
   const [placedOrder, setPlacedOrder] = useState<PlacedOrder | null>(null);
   const [paymentReturn] = useState<PaymentReturn | null>(readPaymentReturn);
   const [store, setStore] = useState<StoreSettings>(EMPTY_STORE_SETTINGS);
+  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORY);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     loadProducts();
@@ -49,6 +56,17 @@ export default function Shop() {
       setLoading(false);
     }
   }
+
+  const categoryCounts = products.reduce<Record<string, number>>((acc, p) => {
+    if (p.category) acc[p.category] = (acc[p.category] ?? 0) + 1;
+    return acc;
+  }, {});
+  const normalizedQuery = normalizeSearch(query);
+  const visibleProducts = products.filter(
+    (p) =>
+      (activeCategory === ALL_CATEGORY || p.category === activeCategory) &&
+      (normalizedQuery === "" || normalizeSearch(p.name).includes(normalizedQuery))
+  );
 
   const lines: CartLine[] = products
     .map((product) => ({ product, quantity: Math.min(cart[product.id] ?? 0, product.stock) }))
@@ -179,16 +197,44 @@ export default function Shop() {
                 <p className="text-sm">در حال حاضر کالایی برای فروش موجود نیست.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    quantity={Math.min(cart[product.id] ?? 0, product.stock)}
-                    onChange={(qty) => setQuantity(product, qty)}
+              <>
+                <div className="mb-6 space-y-4">
+                  <div className="relative">
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                    <input
+                      type="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="جستجوی نام کالا..."
+                      className="w-full rounded-2xl border border-white/10 bg-neutral-900/80 py-3 pr-12 pl-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-400/60 transition"
+                    />
+                  </div>
+                  <CategoryTabs
+                    active={activeCategory}
+                    counts={categoryCounts}
+                    total={products.length}
+                    onSelect={setActiveCategory}
                   />
-                ))}
-              </div>
+                </div>
+
+                {visibleProducts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 gap-3 text-neutral-400 rounded-3xl border border-dashed border-white/10">
+                    <PackageOpen className="w-10 h-10 text-neutral-500" />
+                    <p className="text-sm">کالایی با این جستجو یا دسته‌بندی پیدا نشد.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {visibleProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        quantity={Math.min(cart[product.id] ?? 0, product.stock)}
+                        onChange={(qty) => setQuantity(product, qty)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             {storeAddress && (
