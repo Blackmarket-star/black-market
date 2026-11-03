@@ -60,8 +60,8 @@ export async function fetchProducts(): Promise<Product[]> {
   }));
 }
 
-export async function upsertProduct(product: Product): Promise<void> {
-  const { error } = await supabase.from("products").upsert({
+export async function insertProduct(product: Product): Promise<void> {
+  const { error } = await supabase.from("products").insert({
     id: product.id,
     name: product.name,
     barcode: product.barcode,
@@ -71,6 +71,21 @@ export async function upsertProduct(product: Product): Promise<void> {
     unit: product.unit,
     created_at: product.createdAt,
   });
+  if (error) throw error;
+}
+
+/* Stock is never written from the browser for existing products; it only changes through sales and stock movements. */
+export async function updateProductDetails(product: Product): Promise<void> {
+  const { error } = await supabase
+    .from("products")
+    .update({
+      name: product.name,
+      barcode: product.barcode,
+      purchase_price: product.purchasePrice,
+      sale_price: product.salePrice,
+      unit: product.unit,
+    })
+    .eq("id", product.id);
   if (error) throw error;
 }
 
@@ -118,25 +133,17 @@ export async function fetchSales(): Promise<Sale[]> {
   }));
 }
 
-export async function insertSale(sale: Sale): Promise<void> {
-  const { error: saleErr } = await supabase.from("sales").insert({
-    id: sale.id,
-    total: sale.total,
-    date: sale.date,
+export async function recordSale(sale: Sale): Promise<void> {
+  const { error } = await supabase.rpc("record_sale", {
+    p_sale_id: sale.id,
+    p_items: sale.items.map((it) => ({
+      productId: it.productId,
+      name: it.name,
+      quantity: it.quantity,
+    })),
+    p_date: sale.date,
   });
-  if (saleErr) throw saleErr;
-
-  const rows = sale.items.map((it) => ({
-    sale_id: sale.id,
-    product_id: it.productId,
-    name: it.name,
-    quantity: it.quantity,
-    sale_price: it.salePrice,
-    total: it.total,
-  }));
-
-  const { error: itemErr } = await supabase.from("sale_items").insert(rows);
-  if (itemErr) throw itemErr;
+  if (error) throw error;
 }
 
 /* ---------- Stock movements (Supabase) ---------- */
@@ -160,31 +167,16 @@ export async function fetchStockMovements(): Promise<StockMovement[]> {
   }));
 }
 
-export async function insertStockMovement(movement: StockMovement): Promise<void> {
-  const { error } = await supabase.from("stock_movements").insert({
-    id: movement.id,
-    product_id: movement.productId,
-    product_name: movement.productName,
-    type: movement.type,
-    quantity: movement.quantity,
-    date: movement.date,
-    note: movement.note ?? null,
+export async function recordStockMovement(movement: StockMovement): Promise<void> {
+  const { error } = await supabase.rpc("record_stock_movement", {
+    p_product_id: movement.productId,
+    p_type: movement.type,
+    p_quantity: movement.quantity,
+    p_movement_id: movement.id,
+    p_note: movement.note ?? null,
+    p_date: movement.date,
   });
   if (error) throw error;
-}
-
-/* ---------- Batch save helpers ---------- */
-
-export async function saveProducts(products: Product[]): Promise<void> {
-  for (const p of products) {
-    await upsertProduct(p);
-  }
-}
-
-export async function saveStockMovements(movements: StockMovement[]): Promise<void> {
-  for (const m of movements) {
-    await insertStockMovement(m);
-  }
 }
 
 /* ---------- Reset ---------- */

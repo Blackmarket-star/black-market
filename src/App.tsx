@@ -19,10 +19,11 @@ import {
   fetchProducts,
   fetchSales,
   fetchStockMovements,
-  upsertProduct,
+  insertProduct,
+  updateProductDetails,
   deleteProduct,
-  insertSale,
-  insertStockMovement,
+  recordSale,
+  recordStockMovement,
   resetAllData,
   getStoreName,
   saveStoreName,
@@ -121,14 +122,40 @@ function App() {
     setSidebarOpen(false);
   }
 
+  async function refreshStockData() {
+    try {
+      const [p, s, sm] = await Promise.all([
+        fetchProducts(),
+        fetchSales(),
+        fetchStockMovements(),
+      ]);
+      setProducts(p);
+      setSales(s);
+      setStockMovements(sm);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "خطا در بارگذاری داده‌ها");
+    }
+  }
+
   async function updateProducts(updated: Product[]) {
     const prev = products;
     setProducts(updated);
     try {
-      // Upsert changed products + delete removed ones
+      const prevById = new Map(prev.map((p) => [p.id, p]));
       const updatedIds = new Set(updated.map((p) => p.id));
       for (const p of updated) {
-        await upsertProduct(p);
+        const old = prevById.get(p.id);
+        if (!old) {
+          await insertProduct(p);
+        } else if (
+          old.name !== p.name ||
+          old.barcode !== p.barcode ||
+          old.purchasePrice !== p.purchasePrice ||
+          old.salePrice !== p.salePrice ||
+          old.unit !== p.unit
+        ) {
+          await updateProductDetails(p);
+        }
       }
       for (const old of prev) {
         if (!updatedIds.has(old.id)) {
@@ -137,29 +164,24 @@ function App() {
       }
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "خطا در ذخیره کالاها");
+    } finally {
+      await refreshStockData();
     }
   }
 
-  async function addSale(sale: Sale) {
-    setSales((prev) => [...prev, sale]);
+  async function handleRecordSale(sale: Sale) {
     try {
-      await insertSale(sale);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "خطا در ثبت فروش");
+      await recordSale(sale);
+    } finally {
+      await refreshStockData();
     }
   }
 
-  async function updateStockMovements(movements: StockMovement[]) {
-    const newOnes = movements.filter(
-      (m) => !stockMovements.some((existing) => existing.id === m.id)
-    );
-    setStockMovements(movements);
+  async function handleRecordStockMovement(movement: StockMovement) {
     try {
-      for (const m of newOnes) {
-        await insertStockMovement(m);
-      }
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "خطا در ثبت حرکت انبار");
+      await recordStockMovement(movement);
+    } finally {
+      await refreshStockData();
     }
   }
 
@@ -410,10 +432,7 @@ function App() {
             <Sales
               products={products}
               sales={sales}
-              onAddSale={addSale}
-              onProductsChange={updateProducts}
-              onStockChange={updateStockMovements}
-              stockMovements={stockMovements}
+              onRecordSale={handleRecordSale}
             />
           )}
           {page === "orders" && <Orders focusOrderId={focusOrderId} />}
@@ -421,8 +440,7 @@ function App() {
             <Inventory
               products={products}
               stockMovements={stockMovements}
-              onProductsChange={updateProducts}
-              onStockChange={updateStockMovements}
+              onRecordMovement={handleRecordStockMovement}
             />
           )}
           {page === "settings" && (

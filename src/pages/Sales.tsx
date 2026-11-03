@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Product, Sale, SaleItem, StockMovement } from "@/types";
+import type { Product, Sale, SaleItem } from "@/types";
 import { formatPrice } from "@/lib/format";
 import { uid } from "@/lib/storage";
 import {
@@ -15,10 +15,7 @@ import {
 type SalesProps = {
   products: Product[];
   sales: Sale[];
-  onAddSale: (sale: Sale) => void;
-  onProductsChange: (products: Product[]) => void;
-  onStockChange: (movements: StockMovement[]) => void;
-  stockMovements: StockMovement[];
+  onRecordSale: (sale: Sale) => Promise<void>;
 };
 
 type CartItem = {
@@ -37,14 +34,13 @@ const tm = { color: "var(--text-muted)" };
 export default function Sales({
   products,
   sales,
-  onAddSale,
-  onProductsChange,
-  onStockChange,
-  stockMovements,
+  onRecordSale,
 }: SalesProps) {
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const available = products.filter((p) => p.stock > 0);
   const filtered = available.filter(
@@ -102,8 +98,8 @@ export default function Sales({
 
   const cartTotal = cart.reduce((sum, c) => sum + c.salePrice * c.quantity, 0);
 
-  function handleSubmit() {
-    if (cart.length === 0) return;
+  async function handleSubmit() {
+    if (cart.length === 0 || submitting) return;
 
     const saleItems: SaleItem[] = cart.map((c) => ({
       productId: c.productId,
@@ -115,28 +111,18 @@ export default function Sales({
 
     const sale: Sale = { id: uid(), items: saleItems, total: cartTotal, date: Date.now() };
 
-    const updatedProducts = products.map((p) => {
-      const cartItem = cart.find((c) => c.productId === p.id);
-      if (!cartItem) return p;
-      return { ...p, stock: p.stock - cartItem.quantity };
-    });
-
-    const newMovements: StockMovement[] = cart.map((c) => ({
-      id: uid(),
-      productId: c.productId,
-      productName: c.name,
-      type: "out",
-      quantity: c.quantity,
-      date: Date.now(),
-      note: "فروش",
-    }));
-
-    onAddSale(sale);
-    onProductsChange(updatedProducts);
-    onStockChange([...stockMovements, ...newMovements]);
-    setCart([]);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onRecordSale(sale);
+      setCart([]);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      setError("ثبت فروش انجام نشد. موجودی کالاها بررسی و دوباره تلاش کنید.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -152,6 +138,12 @@ export default function Sales({
           <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
             فروش با موفقیت ثبت شد و موجودی کالاها به‌روزرسانی شد.
           </p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl p-4 text-sm text-rose-600 dark:text-rose-400">
+          {error}
         </div>
       )}
 
@@ -268,9 +260,10 @@ export default function Sales({
                 </div>
                 <button
                   onClick={handleSubmit}
-                  className="w-full bg-gradient-to-l from-emerald-500 to-teal-600 text-white py-3 rounded-xl text-sm font-medium shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all"
+                  disabled={submitting}
+                  className="w-full bg-gradient-to-l from-emerald-500 to-teal-600 text-white py-3 rounded-xl text-sm font-medium shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  ثبت فاکتور فروش
+                  {submitting ? "در حال ثبت..." : "ثبت فاکتور فروش"}
                 </button>
               </div>
             )}

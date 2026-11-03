@@ -13,8 +13,7 @@ import {
 type InventoryProps = {
   products: Product[];
   stockMovements: StockMovement[];
-  onProductsChange: (products: Product[]) => void;
-  onStockChange: (movements: StockMovement[]) => void;
+  onRecordMovement: (movement: StockMovement) => Promise<void>;
 };
 
 const tp = { color: "var(--text-primary)" };
@@ -30,8 +29,7 @@ const inputStyle = {
 export default function Inventory({
   products,
   stockMovements,
-  onProductsChange,
-  onStockChange,
+  onRecordMovement,
 }: InventoryProps) {
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<string>("");
@@ -39,6 +37,8 @@ export default function Inventory({
   const [quantity, setQuantity] = useState<number>(0);
   const [note, setNote] = useState("");
   const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const filtered = products.filter(
     (p) =>
@@ -48,20 +48,14 @@ export default function Inventory({
 
   const recentMovements = stockMovements.slice(-20).reverse();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedProduct || quantity <= 0) return;
+    if (!selectedProduct || quantity <= 0 || submitting) return;
 
     const product = products.find((p) => p.id === selectedProduct);
     if (!product) return;
 
     if (moveType === "out" && quantity > product.stock) return;
-
-    const updatedProducts = products.map((p) =>
-      p.id === selectedProduct
-        ? { ...p, stock: moveType === "in" ? p.stock + quantity : p.stock - quantity }
-        : p
-    );
 
     const movement: StockMovement = {
       id: uid(),
@@ -73,13 +67,20 @@ export default function Inventory({
       note: note.trim() || undefined,
     };
 
-    onProductsChange(updatedProducts);
-    onStockChange([...stockMovements, movement]);
-    setSelectedProduct("");
-    setQuantity(0);
-    setNote("");
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onRecordMovement(movement);
+      setSelectedProduct("");
+      setQuantity(0);
+      setNote("");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      setError("ثبت حرکت انجام نشد. موجودی کالا برسی و دوباره تلاش کنید.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -95,6 +96,12 @@ export default function Inventory({
           <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
             حرکت کالا با موفقیت ثبت شد و موجودی به‌روزرسانی شد.
           </p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl p-4 text-sm text-rose-600 dark:text-rose-400">
+          {error}
         </div>
       )}
 
@@ -190,6 +197,7 @@ export default function Inventory({
             <button
               type="submit"
               disabled={
+                submitting ||
                 !selectedProduct ||
                 quantity <= 0 ||
                 (moveType === "out" && (() => {

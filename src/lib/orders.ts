@@ -123,12 +123,10 @@ export async function requestOnlinePayment(orderId: string): Promise<string> {
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
-  const { data, error } = await supabase
-    .from("orders")
-    .update({ status })
-    .eq("id", id)
-    .select("id");
+  const { error } = await supabase.rpc("set_order_status", {
+    p_order_id: id,
+    p_status: status,
+  });
 
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error("order was not updated");
 }
