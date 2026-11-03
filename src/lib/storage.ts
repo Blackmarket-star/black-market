@@ -57,7 +57,9 @@ export async function fetchProducts(): Promise<Product[]> {
     stock: r.stock,
     unit: r.unit,
     category: r.category ?? null,
+    categorySource: r.category_source === "manual" ? "manual" : "auto",
     imageUrl: r.image_url ?? null,
+    imageSource: r.image_source === "manual" || r.image_source === "none" ? r.image_source : "auto",
     createdAt: r.created_at,
   }));
 }
@@ -72,6 +74,7 @@ export async function insertProduct(product: Product): Promise<void> {
     stock: product.stock,
     unit: product.unit,
     category: product.category,
+    category_source: product.categorySource,
     created_at: product.createdAt,
   });
   if (error) throw error;
@@ -87,9 +90,21 @@ export async function updateProductDetails(product: Product): Promise<void> {
       purchase_price: product.purchasePrice,
       sale_price: product.salePrice,
       unit: product.unit,
-      category: product.category,
     })
     .eq("id", product.id);
+  if (error) throw error;
+}
+
+/* Manual categories are stored with their source so automatic categorization never overwrites them. */
+export async function setProductCategory(
+  productId: string,
+  choice: { source: "auto" } | { source: "manual"; category: string | null }
+): Promise<void> {
+  const payload =
+    choice.source === "auto"
+      ? { category_source: "auto" }
+      : { category_source: "manual", category: choice.category };
+  const { error } = await supabase.from("products").update(payload).eq("id", productId);
   if (error) throw error;
 }
 
@@ -123,7 +138,7 @@ export async function replaceProductImage(
   const { data } = supabase.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(path);
   const { error: updateErr } = await supabase
     .from("products")
-    .update({ image_url: data.publicUrl })
+    .update({ image_url: data.publicUrl, image_source: "manual" })
     .eq("id", productId);
   if (updateErr) {
     await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([path]);
@@ -137,7 +152,7 @@ export async function replaceProductImage(
 export async function removeProductImage(productId: string, previousUrl: string | null): Promise<void> {
   const { error } = await supabase
     .from("products")
-    .update({ image_url: null })
+    .update({ image_url: null, image_source: "none" })
     .eq("id", productId);
   if (error) throw error;
 

@@ -20,14 +20,14 @@ export default function ProductCard({ product, quantity, onChange }: ProductCard
 
   return (
     <article className="group rounded-3xl bg-neutral-900/80 border border-white/10 overflow-hidden flex flex-col transition duration-300 hover:border-violet-400/40 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-12px_rgba(139,92,246,0.35)]">
-      <div className="relative aspect-[4/3] bg-neutral-800 overflow-hidden">
+      <div className="relative h-28 bg-neutral-800 overflow-hidden">
         {showImage ? (
           <img
             src={product.imageUrl ?? undefined}
             alt={product.name}
             loading="lazy"
             onError={() => setImageFailed(true)}
-            className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+            className="w-full h-full object-contain p-2 transition duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-neutral-500">

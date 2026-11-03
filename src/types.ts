@@ -7,7 +7,9 @@ export type Product = {
   stock: number;
   unit: string;
   category: string | null;
+  categorySource: "auto" | "manual";
   imageUrl: string | null;
+  imageSource: "auto" | "manual" | "none";
   createdAt: number;
 };
 

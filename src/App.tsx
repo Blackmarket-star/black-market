@@ -21,6 +21,7 @@ import {
   fetchStockMovements,
   insertProduct,
   updateProductDetails,
+  setProductCategory,
   deleteProduct,
   recordSale,
   recordStockMovement,
@@ -152,10 +153,17 @@ function App() {
           old.barcode !== p.barcode ||
           old.purchasePrice !== p.purchasePrice ||
           old.salePrice !== p.salePrice ||
-          old.unit !== p.unit ||
-          old.category !== p.category
+          old.unit !== p.unit
         ) {
           await updateProductDetails(p);
+        }
+        if (old && (old.category !== p.category || old.categorySource !== p.categorySource)) {
+          await setProductCategory(
+            p.id,
+            p.categorySource === "manual"
+              ? { source: "manual", category: p.category }
+              : { source: "auto" }
+          );
         }
       }
       for (const old of prev) {

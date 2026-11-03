@@ -21,7 +21,7 @@ type ProductsProps = {
   onReload: () => Promise<void>;
 };
 
-type ProductForm = Omit<Product, "id" | "createdAt" | "imageUrl">;
+type ProductForm = Omit<Product, "id" | "createdAt" | "imageUrl" | "imageSource">;
 
 const emptyForm: ProductForm = {
   name: "",
@@ -31,7 +31,11 @@ const emptyForm: ProductForm = {
   stock: 0,
   unit: "عدد",
   category: null,
+  categorySource: "auto",
 };
+
+const AUTO_CATEGORY = "auto";
+const NO_CATEGORY = "none";
 
 const UNITS = ["عدد", "کیلوگرم", "لیتر", "بسته", "جعبه", "گوشی"];
 
@@ -77,6 +81,7 @@ export default function Products({ products, onChange, onReload }: ProductsProps
       stock: p.stock,
       unit: p.unit,
       category: p.category,
+      categorySource: p.categorySource,
     });
     setEditingId(p.id);
     setModalOpen(true);
@@ -99,6 +104,7 @@ export default function Products({ products, onChange, onReload }: ProductsProps
         id: uid(),
         createdAt: Date.now(),
         imageUrl: null,
+        imageSource: "auto",
       };
       onChange([newProduct, ...products]);
     }
@@ -302,10 +308,12 @@ export default function Products({ products, onChange, onReload }: ProductsProps
                   <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="مثلاً شیر پاستوریزه" className="form-input" required autoFocus />
                 </Field>
                 <Field label="دسته‌بندی فروشگاه" className="col-span-2">
-                  <select value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value || null })} className="form-input">
-                    <option value="">بدون دسته</option>
+                  <select value={form.categorySource === "auto" ? AUTO_CATEGORY : form.category ?? NO_CATEGORY} onChange={(e) => setForm({ ...form, ...categoryChoiceToForm(e.target.value) })} className="form-input">
+                    <option value={AUTO_CATEGORY}>خودکار (بر اساس نام)</option>
+                    <option value={NO_CATEGORY}>بدون دسته</option>
                     {PRODUCT_CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
                   </select>
+                  <p className="text-xs text-slate-400 mt-1.5">دسته‌ای که خودتان انتخاب کنید همیشه ذخیره می‌ماند و تغییر خودکار روی آن اعمال نمی‌شود.</p>
                 </Field>
                 {editingId && (
                   <div className="col-span-2">
@@ -404,6 +412,12 @@ export default function Products({ products, onChange, onReload }: ProductsProps
       `}</style>
     </div>
   );
+}
+
+function categoryChoiceToForm(value: string): Pick<ProductForm, "category" | "categorySource"> {
+  if (value === AUTO_CATEGORY) return { category: null, categorySource: "auto" };
+  if (value === NO_CATEGORY) return { category: null, categorySource: "manual" };
+  return { category: value, categorySource: "manual" };
 }
 
 function Field({
