@@ -1,16 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Product, Sale, SaleItem } from "@/types";
 import { formatPrice } from "@/lib/format";
 import { uid } from "@/lib/storage";
-import {
-  Plus,
-  Minus,
-  Trash2,
-  Search,
-  ShoppingCart,
-  CheckCircle,
-  Package,
-} from "lucide-react";
+import CategoryTabs, { ALL_CATEGORY } from "@/components/shop/CategoryTabs";
+import SaleProductCard from "@/components/sales/SaleProductCard";
+import SaleCart, { type CartItem } from "@/components/sales/SaleCart";
+import { CheckCircle, Package, Search } from "lucide-react";
 
 type SalesProps = {
   products: Product[];
@@ -18,36 +13,37 @@ type SalesProps = {
   onRecordSale: (sale: Sale) => Promise<void>;
 };
 
-type CartItem = {
-  productId: string;
-  name: string;
-  salePrice: number;
-  quantity: number;
-  unit: string;
-  maxStock: number;
-};
+const numberFormat = new Intl.NumberFormat("fa-IR");
 
-const tp = { color: "var(--text-primary)" };
-const ts = { color: "var(--text-secondary)" };
-const tm = { color: "var(--text-muted)" };
-
-export default function Sales({
-  products,
-  sales,
-  onRecordSale,
-}: SalesProps) {
+export default function Sales({ products, sales, onRecordSale }: SalesProps) {
   const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORY);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const available = products.filter((p) => p.stock > 0);
-  const filtered = available.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.barcode.includes(search)
-  );
+  const available = useMemo(() => products.filter((p) => p.stock > 0), [products]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of available) {
+      if (p.category) counts[p.category] = (counts[p.category] ?? 0) + 1;
+    }
+    return counts;
+  }, [available]);
+
+  const visibleProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return available.filter(
+      (p) =>
+        (activeCategory === ALL_CATEGORY || p.category === activeCategory) &&
+        (query === "" || p.name.toLowerCase().includes(query) || p.barcode.includes(query))
+    );
+  }, [available, activeCategory, search]);
+
+  const totalQuantity = cart.reduce((sum, c) => sum + c.quantity, 0);
+  const cartTotal = cart.reduce((sum, c) => sum + c.salePrice * c.quantity, 0);
 
   function addToCart(p: Product) {
     const existing = cart.find((c) => c.productId === p.id);
@@ -96,8 +92,6 @@ export default function Sales({
     setCart(cart.filter((c) => c.productId !== productId));
   }
 
-  const cartTotal = cart.reduce((sum, c) => sum + c.salePrice * c.quantity, 0);
-
   async function handleSubmit() {
     if (cart.length === 0 || submitting) return;
 
@@ -126,167 +120,98 @@ export default function Sales({
   }
 
   return (
-    <div className="page-enter space-y-5">
-      <div>
-        <h2 className="text-xl font-bold" style={tp}>ثبت فروش</h2>
-        <p className="text-sm mt-1" style={ts}>کالاها را انتخاب کرده و فاکتور را ثبت کنید</p>
+    <div className="page-enter rounded-3xl bg-neutral-950 text-white p-4 sm:p-6 space-y-5 border border-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold">ثبت فروش</h2>
+          <p className="text-sm text-neutral-400 mt-1">کالاها را انتخاب کرده و فاکتور را ثبت کنید</p>
+        </div>
+        <div className="relative sm:w-72">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+          <input
+            type="text"
+            placeholder="جستجوی کالا..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-xl bg-neutral-900 border border-white/10 py-2.5 pr-10 pl-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition"
+          />
+        </div>
       </div>
 
       {success && (
-        <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl p-4 flex items-center gap-3 page-enter">
-          <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 flex items-center gap-3 page-enter">
+          <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+          <p className="text-sm text-emerald-200 font-medium">
             فروش با موفقیت ثبت شد و موجودی کالاها به‌روزرسانی شد.
           </p>
         </div>
       )}
 
       {error && (
-        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl p-4 text-sm text-rose-600 dark:text-rose-400">
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Product selection */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5" style={tm} />
-            <input
-              type="text"
-              placeholder="جستجوی کالا..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full border rounded-xl py-3 pr-11 pl-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all glass"
-              style={{ color: "var(--text-primary)" }}
-            />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+        <div className="lg:col-span-2 space-y-4 min-w-0">
+          <CategoryTabs
+            active={activeCategory}
+            counts={categoryCounts}
+            total={available.length}
+            onSelect={setActiveCategory}
+          />
 
           {available.length === 0 ? (
-            <div className="glass rounded-2xl p-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "var(--surface)" }}>
-                <Package className="w-8 h-8" style={tm} />
-              </div>
-              <p className="text-sm" style={ts}>هیچ کالای موجودی برای فروش ثبت نشده است.</p>
+            <div className="rounded-2xl bg-neutral-900/80 border border-white/10 p-12 text-center">
+              <Package className="w-10 h-10 mx-auto text-neutral-500 mb-3" />
+              <p className="text-sm text-neutral-300">هیچ کالای موجودی برای فروش ثبت نشده است.</p>
+            </div>
+          ) : visibleProducts.length === 0 ? (
+            <div className="rounded-2xl bg-neutral-900/80 border border-white/10 p-12 text-center">
+              <p className="text-sm text-neutral-300">کالایی با این جستجو یا دسته‌بندی یافت نشد.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {filtered.map((p) => {
-                const inCart = cart.find((c) => c.productId === p.id);
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => addToCart(p)}
-                    className={`text-right glass rounded-xl p-4 border transition-all card-hover ${
-                      inCart ? "border-emerald-400 ring-2 ring-emerald-500/20" : ""
-                    }`}
-                    style={!inCart ? { borderColor: "var(--border)" } : undefined}
-                  >
-                    <p className="text-sm font-medium mb-1 line-clamp-1" style={tp}>{p.name}</p>
-                    <p className="text-xs mb-2" style={tm}>
-                      موجودی: {new Intl.NumberFormat("fa-IR").format(p.stock)} {p.unit}
-                    </p>
-                    <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                      {formatPrice(p.salePrice)}
-                    </p>
-                    {inCart && (
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">
-                        {new Intl.NumberFormat("fa-IR").format(inCart.quantity)} عدد در سبد
-                      </p>
-                    )}
-                  </button>
-                );
-              })}
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+              {visibleProducts.map((p) => (
+                <SaleProductCard
+                  key={p.id}
+                  product={p}
+                  inCartQuantity={cart.find((c) => c.productId === p.id)?.quantity ?? 0}
+                  onAdd={() => addToCart(p)}
+                />
+              ))}
             </div>
           )}
         </div>
 
-        {/* Cart */}
-        <div className="lg:sticky lg:top-24 h-fit">
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: "var(--border)" }}>
-              <ShoppingCart className="w-5 h-5" style={ts} />
-              <h3 className="text-base font-semibold" style={tp}>سبد فروش</h3>
-              {cart.length > 0 && (
-                <span className="text-xs bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">
-                  {new Intl.NumberFormat("fa-IR").format(cart.length)} قلم
-                </span>
-              )}
-            </div>
-
-            <div className="max-h-80 overflow-y-auto">
-              {cart.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="text-sm" style={tm}>سبد خالی است</p>
-                  <p className="text-xs mt-1" style={tm}>کالاها را از سمت راست اضافه کنید</p>
-                </div>
-              ) : (
-                <div className="p-3 space-y-2">
-                  {cart.map((c) => (
-                    <div key={c.productId} className="flex items-center gap-2 p-2 rounded-xl" style={{ background: "var(--surface)" }}>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={tp}>{c.name}</p>
-                        <p className="text-xs" style={tm}>{formatPrice(c.salePrice)}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => updateQty(c.productId, -1)} className="w-7 h-7 rounded-lg border flex items-center justify-center transition-colors" style={{ background: "var(--glass-bg)", borderColor: "var(--border)", color: "var(--text-secondary)" }}>
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <input
-                          type="number"
-                          value={c.quantity}
-                          onChange={(e) => setQty(c.productId, Number(e.target.value))}
-                          className="w-10 text-center text-sm font-medium border rounded-lg py-1"
-                          style={{ background: "var(--glass-bg)", borderColor: "var(--border)", color: "var(--text-primary)" }}
-                        />
-                        <button onClick={() => updateQty(c.productId, 1)} disabled={c.quantity >= c.maxStock} className="w-7 h-7 rounded-lg border flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed" style={{ background: "var(--glass-bg)", borderColor: "var(--border)", color: "var(--text-secondary)" }}>
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => removeFromCart(c.productId)} className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-500/15 border border-red-100 dark:border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-100 dark:hover:bg-red-500/25 transition-colors mr-1">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {cart.length > 0 && (
-              <div className="px-5 py-4 border-t space-y-3" style={{ borderColor: "var(--border)" }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm" style={ts}>جمع کل</span>
-                  <span className="text-lg font-bold" style={tp}>{formatPrice(cartTotal)}</span>
-                </div>
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="w-full bg-gradient-to-l from-emerald-500 to-teal-600 text-white py-3 rounded-xl text-sm font-medium shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {submitting ? "در حال ثبت..." : "ثبت فاکتور فروش"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <SaleCart
+          items={cart}
+          total={cartTotal}
+          totalQuantity={totalQuantity}
+          submitting={submitting}
+          onChangeQuantity={updateQty}
+          onSetQuantity={setQty}
+          onRemove={removeFromCart}
+          onSubmit={handleSubmit}
+        />
       </div>
 
-      {/* Recent sales */}
       {sales.length > 0 && (
-        <div className="glass rounded-2xl p-6">
-          <h3 className="text-base font-semibold mb-4" style={tp}>آخرین فروش‌ها</h3>
+        <div className="rounded-2xl bg-neutral-900/80 border border-white/10 p-5">
+          <h3 className="text-base font-semibold mb-4">آخرین فروش‌ها</h3>
           <div className="space-y-2">
             {sales.slice(-5).reverse().map((s) => (
-              <div key={s.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "var(--surface)" }}>
+              <div key={s.id} className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/5">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm truncate" style={ts}>
-                    {s.items.map((i) => `${i.name} (${i.quantity})`).join("، ")}
+                  <p className="text-sm text-neutral-300 truncate">
+                    {s.items.map((i) => `${i.name} (${numberFormat.format(i.quantity)})`).join("، ")}
                   </p>
-                  <p className="text-xs mt-0.5" style={tm}>
+                  <p className="text-xs text-neutral-500 mt-0.5">
                     {new Intl.DateTimeFormat("fa-IR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(s.date))}
                   </p>
                 </div>
-                <span className="text-sm font-bold mr-3" style={tp}>{formatPrice(s.total)}</span>
+                <span className="text-sm font-bold mr-3 text-white">{formatPrice(s.total)}</span>
               </div>
             ))}
           </div>
