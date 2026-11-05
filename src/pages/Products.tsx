@@ -130,7 +130,7 @@ export default function Products({ products, onChange, onReload }: ProductsProps
         </div>
         <button
           onClick={openAdd}
-          className="flex items-center gap-2 bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all"
+          className="flex items-center gap-2 bg-gradient-to-l from-violet-600 to-purple-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 transition-all"
         >
           <Plus className="w-5 h-5" />
           افزودن کالا
@@ -215,7 +215,7 @@ export default function Products({ products, onChange, onReload }: ProductsProps
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => openEdit(p)}
-                          className="p-2 rounded-lg transition-colors hover:bg-sky-50 dark:hover:bg-sky-500/15 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400"
+                          className="p-2 rounded-lg transition-colors hover:bg-violet-50 dark:hover:bg-violet-500/15 text-slate-400 hover:text-violet-600 dark:hover:text-violet-400"
                           title="ویرایش"
                         >
                           <Pencil className="w-4 h-4" />
@@ -275,7 +275,7 @@ export default function Products({ products, onChange, onReload }: ProductsProps
                     <span className="font-medium" style={tp}>{formatPrice(p.salePrice)}</span>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(p)} className="p-2 rounded-lg bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400">
+                    <button onClick={() => openEdit(p)} className="p-2 rounded-lg bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => setConfirmDelete(p.id)} className="p-2 rounded-lg bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400">
@@ -349,7 +349,7 @@ export default function Products({ products, onChange, onReload }: ProductsProps
                 </Field>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" className="flex-1 bg-gradient-to-l from-emerald-500 to-teal-600 text-white py-3 rounded-xl text-sm font-medium shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all">
+                <button type="submit" className="flex-1 bg-gradient-to-l from-violet-600 to-purple-700 text-white py-3 rounded-xl text-sm font-medium shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 transition-all">
                   {editingId ? "ذخیره تغییرات" : "افزودن کالا"}
                 </button>
                 <button type="button" onClick={() => setModalOpen(false)} className="px-6 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 py-3 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">

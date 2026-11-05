@@ -103,7 +103,7 @@ export default function Dashboard({ products, sales, onNavigate }: DashboardProp
       sub: `${todaySales.length} فاکتور`,
       icon: DollarSign,
       gradient: "from-emerald-400 via-teal-500 to-teal-600",
-      shadow: "shadow-emerald-500/30",
+      shadow: "shadow-violet-500/30",
       glow: "rgba(16, 185, 129, 0.12)",
       onClick: () => setShowTodayModal(true),
     },
@@ -112,8 +112,8 @@ export default function Dashboard({ products, sales, onNavigate }: DashboardProp
       value: formatPrice(monthTotal),
       sub: `${monthSales.length} فاکتور`,
       icon: CalendarDays,
-      gradient: "from-sky-400 via-blue-500 to-indigo-600",
-      shadow: "shadow-blue-500/30",
+      gradient: "from-violet-500 via-purple-600 to-fuchsia-700",
+      shadow: "shadow-violet-500/30",
       glow: "rgba(59, 130, 246, 0.12)",
       onClick: () => setShowMonthModal(true),
     },
@@ -142,10 +142,10 @@ export default function Dashboard({ products, sales, onNavigate }: DashboardProp
     <div className="page-enter space-y-6">
       {/* Welcome banner + Shamsi calendar */}
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-l from-slate-900 via-indigo-900 to-slate-900 p-7 sm:p-10 shadow-2xl shadow-indigo-500/15 flex-1">
+        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-l from-neutral-950 via-purple-950 to-neutral-900 p-7 sm:p-10 shadow-2xl shadow-purple-500/15 flex-1">
           <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-emerald-500/15 blur-3xl" />
           <div className="absolute -left-20 bottom-0 w-56 h-56 rounded-full bg-teal-500/10 blur-3xl" />
-          <div className="absolute right-10 top-5 w-32 h-32 rounded-full bg-indigo-500/15 blur-3xl" />
+          <div className="absolute right-10 top-5 w-32 h-32 rounded-full bg-purple-500/15 blur-3xl" />
           <div className="relative flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -165,7 +165,7 @@ export default function Dashboard({ products, sales, onNavigate }: DashboardProp
             <div className="flex gap-3">
               <button
                 onClick={() => onNavigate("sales")}
-                className="flex items-center gap-2 bg-gradient-to-l from-emerald-500 to-teal-600 text-white px-6 py-3.5 rounded-2xl text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.03] transition-all"
+                className="flex items-center gap-2 bg-gradient-to-l from-violet-600 to-purple-700 text-white px-6 py-3.5 rounded-2xl text-sm font-medium shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.03] transition-all"
               >
                 <ShoppingBag className="w-5 h-5" />
                 ثبت فروش جدید

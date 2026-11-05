@@ -4,6 +4,7 @@ import WelcomeModal from "@/components/WelcomeModal";
 import ThemeToggle from "@/components/ThemeToggle";
 import LoadingScreen from "@/components/LoadingScreen";
 import LoginScreen from "@/components/LoginScreen";
+import LoginWelcome from "@/components/LoginWelcome";
 import SelectionScreen from "@/components/SelectionScreen";
 import Dashboard from "@/pages/Dashboard";
 import Products from "@/pages/Products";
@@ -48,7 +49,7 @@ function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [route, setRoute] = useState<"select" | "store" | "staff">("select");
+  const [route, setRoute] = useState<"welcome" | "select" | "store" | "staff">("select");
 
   useEffect(() => {
     const theme = getTheme();
@@ -232,7 +233,11 @@ function App() {
   }
 
   if (!authenticated) {
-    return <LoginScreen onSuccess={() => { setAuthenticated(true); setRoute("select"); }} />;
+    return <LoginScreen onSuccess={() => { setAuthenticated(true); setRoute("welcome"); }} />;
+  }
+
+  if (route === "welcome") {
+    return <LoginWelcome onDone={() => setRoute("select")} />;
   }
 
   if (route === "select") {
@@ -249,7 +254,7 @@ function App() {
       return (
         <div className="flex min-h-screen items-center justify-center" style={{ color: "var(--text-primary)" }}>
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+            <Loader2 className="w-10 h-10 animate-spin text-violet-500" />
             <p className="text-base" style={{ color: "var(--text-secondary)" }}>
               در حال بارگذاری...
             </p>

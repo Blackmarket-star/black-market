@@ -78,7 +78,7 @@ export default function ProductImageField({ productId, imageUrl, onReload }: Pro
               type="button"
               disabled={busy}
               onClick={() => inputRef.current?.click()}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/25 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition-colors disabled:opacity-50"
             >
               {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />}
               {imageUrl ? "جایگزینی تصویر" : "افزودن تصویر"}

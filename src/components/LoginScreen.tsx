@@ -31,16 +31,16 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950" />
-      <div className="absolute -top-20 -right-20 w-[28rem] h-[28rem] rounded-full bg-blue-500/15 blur-3xl animate-pulse" />
+      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-900 to-purple-950" />
+      <div className="absolute -top-20 -right-20 w-[28rem] h-[28rem] rounded-full bg-violet-500/15 blur-3xl animate-pulse" />
       <div className="absolute -bottom-20 -left-20 w-[28rem] h-[28rem] rounded-full bg-emerald-500/12 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-indigo-500/10 blur-3xl" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-purple-500/10 blur-3xl" />
 
       {/* Login card */}
       <div
         className="relative w-full max-w-md rounded-[2rem] p-8 sm:p-10 page-enter"
         style={{
-          background: "rgba(15,23,42,0.6)",
+          background: "rgba(10,8,18,0.7)",
           backdropFilter: "blur(30px) saturate(1.5)",
           WebkitBackdropFilter: "blur(30px) saturate(1.5)",
           border: "1px solid rgba(255,255,255,0.1)",
@@ -75,7 +75,7 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
                   if (error) setError("");
                 }}
                 autoFocus
-                className="w-full pr-12 pl-12 py-3.5 rounded-2xl text-white text-base font-medium tracking-wider bg-white/5 border border-white/10 focus:border-blue-400/50 focus:bg-white/8 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                className="w-full pr-12 pl-12 py-3.5 rounded-2xl text-white text-base font-medium tracking-wider bg-white/5 border border-white/10 focus:border-violet-400/50 focus:bg-white/8 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
                 placeholder="•••"
                 dir="ltr"
               />
@@ -109,7 +109,7 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps) {
           <button
             type="submit"
             disabled={loading || !password}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-teal-600 text-white py-3.5 rounded-2xl text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-l from-violet-600 to-purple-700 text-white py-3.5 rounded-2xl text-sm font-bold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100"
           >
             {loading ? (
               <span className="flex items-center gap-2">
